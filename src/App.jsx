@@ -1,6 +1,6 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 
-import { Input, Button } from "antd";
+import { Input, Button, Select } from "antd";
 
 function App() {
   function randomId() {
@@ -23,27 +23,43 @@ function App() {
     );
   }
   const [inputValue, setInputValue] = useState("");
-  const [inputValueBace, setInputValueBace] = useState("");
-  const [todoList, setTodoList] = useState([
-    {
-      id: randomId(),
-      name: "so1",
-      status: "not done",
-    },
-  ]);
+  const [filterStatus, setFilterStatus] = useState('all')
+  const [todoList, setTodoList] = useState([]);
+  const [todoListFilter, setTodolistFilter] = useState([])
+  useEffect(() => {
+    if (filterStatus === 'all') {
+      setTodolistFilter(todoList)
+    } else if (filterStatus === 'done') {
+      setTodolistFilter(todoList.filter(item => item.status === 'done'))
+    } else if (filterStatus !== 'done') {
+      setTodolistFilter(todoList.filter(item => item.status !== 'done'))
+    }
+  }, [filterStatus, todoList])
+
   const handleChange = (e) => {
     setInputValue(e.target.value);
   };
+
   const handleClick = () => {
-    setTodoList([
-      ...todoList,
-      {
-        id: randomId(),
-        name: inputValue,
-        status: "not done",
-      },
-    ]);
+
+    if (inputValue == '') {
+      alert("Bạn chưa có thông tin input value")
+    } else {
+      setTodoList([
+        ...todoList,
+        {
+          id: randomId(),
+          name: inputValue,
+          status: "not done",
+        },
+      ]);
+      setInputValue('')
+    }
   };
+  const handleChangeStatus = (value) => {
+
+    setFilterStatus(value.value)
+  }
   const handleDelete = (item) => {
     for (let i = 0; i < todoList.length; i++) {
       const toDo = todoList[i];
@@ -51,7 +67,7 @@ function App() {
       setTodoList(newTodolist);
     }
   };
-  const handleEdit = (item) => {
+  const handleDone = (item) => {
     setTodoList((old) => {
       return old.map((oldItem) => {
         if (oldItem.id === item.id) {
@@ -62,44 +78,64 @@ function App() {
     });
   };
   return (
-    <div>
-      {" "}
+    <>
       <div className="input-btn">
-        <Input onChange={handleChange} placeholder="Nhập dữ liệu " />
+        <Input onChange={handleChange} value={inputValue} placeholder="Nhập dữ liệu " />
         <Button onClick={handleClick} type="primary">
           Submit
         </Button>
+        <Select
+          labelInValue
+          defaultValue={{
+            value: 'all',
+            label: 'All',
+          }}
+          style={{
+            width: 200,
+          }}
+          onChange={handleChangeStatus}
+          options={[
+            {
+              value: 'all',
+              label: 'All',
+            },
+            {
+              value: 'done',
+              label: 'Done',
+            },
+            {
+              value: 'not done',
+              label: 'Not Done',
+            }
+          ]}
+        />
       </div>
       <ul className="flex">
         <li>Title</li>
         <li>Status</li>
         <li>Action</li>
       </ul>
-      {todoList.map((item) => {
+      {todoListFilter.map((item) => {
         return (
           <div>
             <ul key={item.id} className="flex">
               <li>{item.name}</li>
               <li>{item.status}</li>
-              <div>
-                <li>
-                  <button
-                    onClick={() => {
-                      handleEdit(item);
-                    }}
-                  >
-                    Update
-                  </button>
-                </li>
-                <li>
-                  <button onClick={handleDelete}>Delete</button>
-                </li>
-              </div>
+              <li className="btn-action">
+                <button
+                  onClick={() => {
+                    handleDone(item);
+                  }}
+                >
+                  Complate
+                </button>
+                <button onClick={handleDelete}>Delete</button>
+              </li>
             </ul>
           </div>
         );
       })}
-    </div>
+    </>
   );
 }
 
